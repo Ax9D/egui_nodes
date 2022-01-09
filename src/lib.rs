@@ -1223,13 +1223,10 @@ impl Context {
     }
 
     fn find_duplicate_link(&self, start_pin_idx: usize, end_pin_idx: usize) -> Option<usize> {
-        let mut test_link = LinkData::new(0);
-        test_link.start_pin_index = start_pin_idx;
-        test_link.end_pin_index = end_pin_idx;
         for (idx, (link, in_use)) in
             self.links.pool.iter().zip(self.links.in_use.iter()).enumerate()
         {
-            if *in_use && *link == test_link {
+            if *in_use && link.start_pin_index == start_pin_idx && link.end_pin_index == end_pin_idx {
                 return Some(idx);
             }
         }
