@@ -759,12 +759,13 @@ impl Context {
 
             let start_pin = &self.pins.pool[link.start_pin_index];
             let end_pin = &self.pins.pool[link.end_pin_index];
-
+            
             let link_data = LinkBezierData::get_link_renderable(
                 start_pin.pos,
                 end_pin.pos,
                 start_pin.kind,
                 self.style.link_line_segments_per_length,
+                self.style.link_bezier_offset_coefficient
             );
             let link_rect = link_data
                 .bezier
@@ -789,6 +790,7 @@ impl Context {
             end_pin.pos,
             start_pin.kind,
             self.style.link_line_segments_per_length,
+            self.style.link_bezier_offset_coefficient
         );
         let link_shape = link.shape.take().unwrap();
         let link_hovered = self.hovered_link_idx == Some(link_idx)
@@ -948,9 +950,6 @@ impl Context {
         duplicate_link: Option<usize>,
     ) -> bool {
         let end_pin = &self.pins.pool[hovered_pin_idx];
-        if start_pin.parent_node_idx == end_pin.parent_node_idx {
-            return false;
-        }
 
         if start_pin.kind == end_pin.kind {
             return false;
@@ -1032,6 +1031,7 @@ impl Context {
                 *end,
                 start_type,
                 self.style.link_line_segments_per_length,
+                self.style.link_bezier_offset_coefficient
             );
             return link_data.rectangle_overlaps_bezier(rect);
         }
@@ -1094,7 +1094,7 @@ impl Context {
                     .click_interaction_state
                     .link_creation
                     .end_pin_index
-                    .map_or(false, |idx| self.hovered_pin_index != Some(idx));
+                    .map_or(false, |idx| self.hovered_pin_index != Some(idx));    
 
                 if snapping_pin_changed && self.snap_link_idx.is_some() {
                     self.begin_link_detach(
@@ -1120,6 +1120,7 @@ impl Context {
                     end_pos,
                     start_pin.kind,
                     self.style.link_line_segments_per_length,
+                    self.style.link_bezier_offset_coefficient
                 );
                 ui.painter().add(link_data.draw((
                     self.style.link_thickness,
@@ -1177,7 +1178,7 @@ impl Context {
             } else {
                 link.start_pin_index
             };
-        self.deleted_link_idx.replace(idx);
+        self.deleted_link_idx.replace(link.id);
     }
 
     fn begin_link_interaction(&mut self, idx: usize) {
@@ -1188,20 +1189,20 @@ impl Context {
                 self.begin_link_detach(idx, self.hovered_pin_index.unwrap());
                 self.click_interaction_state.link_creation.link_creation_type =
                     LinkCreationType::FromDetach;
+            }   else if self.link_detatch_with_modifier_click {
+                    let link = &self.links.pool[idx];
+                    let start_pin = &self.pins.pool[link.start_pin_index];
+                    let end_pin = &self.pins.pool[link.end_pin_index];
+                    let dist_to_start = start_pin.pos.distance(self.mouse_pos);
+                    let dist_to_end = end_pin.pos.distance(self.mouse_pos);
+                    let closest_pin_idx = if dist_to_start < dist_to_end {
+                        link.start_pin_index
+                    } else {
+                        link.end_pin_index
+                    };
+                    self.click_interaction_type = ClickInteractionType::LinkCreation;
+                    self.begin_link_detach(idx, closest_pin_idx);
             }
-        } else if self.link_detatch_with_modifier_click {
-            let link = &self.links.pool[idx];
-            let start_pin = &self.pins.pool[link.start_pin_index];
-            let end_pin = &self.pins.pool[link.end_pin_index];
-            let dist_to_start = start_pin.pos.distance(self.mouse_pos);
-            let dist_to_end = end_pin.pos.distance(self.mouse_pos);
-            let closest_pin_idx = if dist_to_start < dist_to_end {
-                link.start_pin_index
-            } else {
-                link.end_pin_index
-            };
-            self.click_interaction_type = ClickInteractionType::LinkCreation;
-            self.begin_link_detach(idx, closest_pin_idx);
         } else {
             self.begin_link_selection(idx);
         }
@@ -1326,7 +1327,7 @@ pub struct IO {
     pub emulate_three_button_mouse: Modifiers,
 
     // The Modifier that needs to be pressed to detatch a link instead of creating a new one
-    #[derivative(Default(value = "Modifiers::None"))]
+    #[derivative(Default(value = "Modifiers::Alt"))]
     pub link_detatch_with_modifier_click: Modifiers,
 
     // The mouse button that pans the editor. Should probably not be set to Primary.

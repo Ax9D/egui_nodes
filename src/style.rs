@@ -180,6 +180,7 @@ pub struct Style {
 
     pub link_thickness: f32,
     pub link_line_segments_per_length: f32,
+    pub link_bezier_offset_coefficient: egui::Vec2,
     pub link_hover_distance: f32,
 
     pub pin_circle_radius: f32,
@@ -203,6 +204,7 @@ impl Default for Style {
             node_border_thickness: 1.0,
             link_thickness: 3.0,
             link_line_segments_per_length: 0.1,
+            link_bezier_offset_coefficient: egui::vec2(0.25, 0.0), 
             link_hover_distance: 10.0,
             pin_circle_radius: 4.0,
             pin_quad_side_length: 7.0,

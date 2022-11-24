@@ -138,7 +138,7 @@ impl<'a, 'b> NodeConstructor<'a> {
     }
 
     /// Add a title to a node
-    pub fn with_title(mut self, title: impl FnOnce(&mut egui::Ui) -> egui::Response + 'a) -> Self {
+    pub fn with_title(&mut self, title: impl FnOnce(&mut egui::Ui) -> egui::Response + 'a) -> &mut Self {
         self.title.replace(Box::new(title));
         self
     }
@@ -147,11 +147,11 @@ impl<'a, 'b> NodeConstructor<'a> {
     /// id should be the same accross frames and should not be the same as any other currently used attributes
     /// the attribute should return a egui::Response to be checked for interaction
     pub fn with_input_attribute(
-        mut self,
+        &mut self,
         id: usize,
         args: PinArgs,
         attribute: impl FnOnce(&mut egui::Ui) -> egui::Response + 'a,
-    ) -> Self {
+    ) -> &mut Self {
         self.attributes.push((id, AttributeType::Input, args, Box::new(attribute)));
         self
     }
@@ -159,11 +159,11 @@ impl<'a, 'b> NodeConstructor<'a> {
     /// id should be the same accross frames and should not be the same as any other currently used attributes
     /// the attribute should return a egui::Response to be checked for interaction
     pub fn with_output_attribute(
-        mut self,
+        &mut self,
         id: usize,
         args: PinArgs,
         attribute: impl FnOnce(&mut egui::Ui) -> egui::Response + 'a,
-    ) -> Self {
+    ) -> &mut Self {
         self.attributes.push((id, AttributeType::Output, args, Box::new(attribute)));
         self
     }
@@ -171,10 +171,10 @@ impl<'a, 'b> NodeConstructor<'a> {
     /// id should be the same accross frames and should not be the same as any other currently used attributes
     /// the attribute should return a egui::Response to be checked for interaction
     pub fn with_static_attribute(
-        mut self,
+        &mut self,
         id: usize,
         attribute: impl FnOnce(&mut egui::Ui) -> egui::Response + 'a,
-    ) -> Self {
+    ) -> &mut Self {
         self.attributes.push((
             id,
             AttributeType::None,
@@ -185,7 +185,7 @@ impl<'a, 'b> NodeConstructor<'a> {
     }
     /// Set the position of the node in screen space when it is first created.
     /// To modify it after creation use one of the set_node_pos methods of the Context
-    pub fn with_origin(mut self, origin: egui::Pos2) -> Self {
+    pub fn with_origin(&mut self, origin: egui::Pos2) -> &mut Self {
         self.pos.replace(origin);
         self
     }

@@ -66,16 +66,18 @@ impl PartialEq for LinkData {
         let mut lhs_end = self.end_pin_index;
         let mut rhs_start = rhs.start_pin_index;
         let mut rhs_end = rhs.end_pin_index;
-
+        
+        // Order start and end pin in increasing order
+        // Links are undirected so this is necessary for the equality to hold
         if lhs_start > lhs_end {
             std::mem::swap(&mut lhs_start, &mut lhs_end);
         }
-
+        // Same for rhs
         if rhs_start > rhs_end {
             std::mem::swap(&mut rhs_start, &mut rhs_end);
         }
 
-        lhs_start == rhs_start && lhs_end == rhs_start
+        lhs_start == rhs_start && lhs_end == rhs_end
     }
 }
 
@@ -119,6 +121,7 @@ impl LinkBezierData {
         end: egui::Pos2,
         start_type: AttributeType,
         line_segments_per_length: f32,
+        link_bezier_offset_coefficient: egui::Vec2
     ) -> Self {
         let (mut start, mut end) = (start, end);
         if start_type == AttributeType::Input {
@@ -126,7 +129,7 @@ impl LinkBezierData {
         }
 
         let link_length = end.distance(start);
-        let offset = egui::vec2(0.25 * link_length, 0.0);
+        let offset = egui::vec2(link_bezier_offset_coefficient.x * link_length, link_bezier_offset_coefficient.y);
         Self {
             bezier: BezierCurve(start, start + offset, end - offset, end),
             num_segments: 1.max((link_length * line_segments_per_length) as usize),
