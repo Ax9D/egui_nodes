@@ -1,4 +1,5 @@
 use eframe::{egui};
+use egui::Widget;
 use egui_nodes::{Context, LinkArgs, NodeArgs, NodeConstructor, PinArgs, PinShape};
 
 struct MyApp {
