@@ -307,7 +307,7 @@ impl Style {
                             pin_pos + (left_offset, -verticacl_offset).into(),
                         ],
                         pin_color,
-                        egui::Stroke::none(),
+                        egui::Stroke::NONE,
                     ),
                 )
             }
